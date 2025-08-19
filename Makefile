@@ -33,10 +33,10 @@ down:
 	docker compose  -f docker-compose.yml -f docker-compose.dev.yml --env-file=".env" down
 
 connect:
-	@docker exec -it -u="$(shell id -u):$(shell id -g)" bt_crm-php /bin/bash
+	@docker exec -it -u="$(shell id -u):$(shell id -g)" csv_json-php /bin/bash
 
 connect-root:
-	@docker exec -it bt_crm-php /bin/bash
+	@docker exec -it csv_json-php /bin/bash
 
 connect-db:
 	#docker compose --env-file=".env" exec db-mysql sh -c "mysql -u${DB_USERNAME} -p${DB_PASSWORD} -D${DB_DATABASE}"
@@ -44,7 +44,7 @@ connect-db:
 	docker compose --env-file=".env" exec db-mysql sh -c "/connect.sh"
 
 connect-node:
-	@docker exec -it -u="$(shell id -u):$(shell id -g)" bt_crm-node /bin/bash
+	@docker exec -it -u="$(shell id -u):$(shell id -g)" csv_json-node /bin/bash
 
 deploy: run-maintenance-on update-src run-php-update run-php-refresh-permissions run-maintenance-off build-node
 
