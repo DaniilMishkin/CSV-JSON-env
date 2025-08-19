@@ -1,35 +1,31 @@
 services:
   nginx:
     build: ./config/nginx
-    container_name: bt_crm-nginx
+    container_name: csv_json-nginx
     restart: always
     ports:
       - "${PORT_PHP_SSL}:443"
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./config/nginx/conf.d/upstream-php.conf:/etc/nginx/conf.d/upstream-php.conf
-      - ./config/nginx/conf.d/upstream-reverb.conf:/etc/nginx/conf.d/upstream-reverb.conf
       - ./config/nginx/sites/${NGINX_SITE_CONF:?"undefined NGINX_SITE_CONF environment variable"}:/etc/nginx/conf.d/default.conf
       - ./src:/var/www
       - ./logs/nginx:/var/log/nginx
       - ${PATH_SSL:?"undefined PATH_SSL environment variable"}:/etc/ssl/private/
     depends_on:
       - php-fpm
-      - php-reverb
       - php-horizon
     networks:
-      bt_crm:
+      csv_json:
         ipv4_address: 192.168.2.2
 
   php-fpm:
     build: ./config/php-fpm
-    container_name: bt_crm-php
+    container_name: csv_json-php
     restart: always
     depends_on:
       - db-mysql
       - redis
-    links:
-      - php-reverb
     volumes:
       - ./src:/var/www
       - ./logs/laravel:/var/www/storage/logsc
@@ -42,13 +38,13 @@ services:
       - REDIS_URL=redis
       - REDIS_HOST=redis
     networks:
-      bt_crm:
+      csv_json:
         ipv4_address: 192.168.2.3
 
   php-horizon:
     build: ./config/php-cli
     image: bt-crm:php-cli
-    container_name: bt_crm-php_horizon
+    container_name: csv_json-php_horizon
     restart: always
     volumes:
       - ./src:/var/www
@@ -66,14 +62,14 @@ services:
       - db-mysql
       - redis
     networks:
-      bt_crm:
+      csv_json:
         ipv4_address: 192.168.2.4
 
   node:
     build:
       context: ./src
       dockerfile: ../config/node/Dockerfile
-    container_name: bt_crm-node
+    container_name: csv_json-node
     working_dir: /var/www
     environment:
       - NODE_ENV=production
@@ -82,19 +78,19 @@ services:
     command: "yarn build"
     user: "node"
     networks:
-      bt_crm:
+      csv_json:
         ipv4_address: 192.168.2.7
 
   redis:
     image: "redis:alpine"
-    container_name: bt_crm-redis
+    container_name: csv_json-redis
     networks:
-      bt_crm:
+      csv_json:
         ipv4_address: 192.168.2.8
 
   db-mysql:
     build: ./config/mysql
-    container_name: bt_crm-mysql
+    container_name: csv_json-mysql
     volumes:
       - ./db-data:/var/lib/mysql
     environment:
@@ -103,12 +99,12 @@ services:
       - MYSQL_USER=${DB_USERNAME:?"undefined DB_USERNAME environment variable"}
       - MYSQL_PASSWORD=${DB_PASSWORD:?"undefined DB_PASSWORD environment variable"}
     networks:
-      bt_crm:
+      csv_json:
         ipv4_address: 192.168.2.9
 
 networks:
-  bt_crm:
-    name: bt_crm
+  csv_json:
+    name: csv_json
     driver: bridge
     ipam:
       driver: default

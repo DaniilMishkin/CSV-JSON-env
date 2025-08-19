@@ -3,5 +3,3 @@
 
 .env
 db-data/*
-ssl/*
-src/*

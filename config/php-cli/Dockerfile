@@ -12,6 +12,7 @@ RUN apt-get install -y git
 RUN apt-get install -y unzip
 RUN apt-get install -y libxml2-dev
 RUN apt-get install -y libzip-dev
+RUN apt-get install -y libicu-dev
 
 # other libs
 RUN apt-get install -y libmcrypt-dev libldap2-dev libfreetype6-dev libjpeg62-turbo-dev
@@ -27,21 +28,6 @@ RUN docker-php-ext-enable pdo_mysql
 
 # Redis support
 RUN pecl install redis && docker-php-ext-enable redis
-
-# Decimal support
-RUN apt-get -y install lsb-release ca-certificates curl
-RUN curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
-RUN dpkg -i /tmp/debsuryorg-archive-keyring.deb
-RUN sh -c 'echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-RUN apt-get update
-RUN apt-get install -y libmpdec-dev
-RUN pecl install decimal && docker-php-ext-enable decimal
-
-# ext-uv support
-RUN apt-get install -y libevent-dev
-RUN apt-get install -y openssl libcurl4-openssl-dev pkg-config libssl-dev
-RUN pecl install event
-RUN docker-php-ext-enable --ini-name zz-event.ini event
 
 # adding nano & mc
 RUN apt-get install -y nano

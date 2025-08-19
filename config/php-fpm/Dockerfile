@@ -10,6 +10,7 @@ RUN apt-get update -y
 RUN apt-get install -y apt-utils
 RUN apt-get install -y libxml2-dev
 RUN apt-get install -y libzip-dev
+RUN apt-get install -y libicu-dev
 
 
 # other libs
