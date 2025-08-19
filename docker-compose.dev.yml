@@ -1,0 +1,60 @@
+services:
+  nginx:
+    ports:
+      - "${DEV_PORT_PHP}:80"
+
+  php-fpm:
+    environment:
+      - APP_ENV=local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${APP_URL}:host-gateway"
+      - "${WS_URL}:host-gateway"
+
+  php-horizon:
+    environment:
+      - APP_ENV=local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${APP_URL}:host-gateway"
+      - "${WS_URL}:host-gateway"
+
+  php-test:
+    image: bt-crm:php-cli
+    container_name: bt_crm-php_test
+    volumes:
+      - ./src:/var/www
+      - ./logs/tests:/var/www/storage/logs
+    environment:
+      - APP_ENV=testing
+      - DB_HOST=db-mysql
+      - DB_DATABASE_TESTING=${DB_DATABASE_TESTING:?"undefined DB_DATABASE_TESTING environment variable"}
+      - DB_USERNAME_TESTING=${DB_USERNAME_TESTING:?"undefined DB_USERNAME_TESTING environment variable"}
+      - DB_PASSWORD_TESTING=${DB_PASSWORD_TESTING:?"undefined DB_PASSWORD_TESTING environment variable"}
+    command: "php artisan test"
+    depends_on:
+      - db-mysql
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.22
+
+  node:
+    environment:
+      - NODE_ENV=development
+    command: "tail -f /dev/null"
+    ports:
+      - "${PORT_NODE}:5173"
+    extra_hosts:
+      - "${WS_URL}:host-gateway"
+    volumes:
+      - ./src:/var/www
+
+  db-mysql:
+    ports:
+      - "${DEV_PORT_DB}:3306"
+    build:
+      context: ./config/mysql-dev
+      args:
+        - MYSQL_DATABASE_TESTING=${DB_DATABASE_TESTING}
+        - MYSQL_USERNAME_TESTING=${DB_USERNAME_TESTING}
+        - MYSQL_PASSWORD_TESTING=${DB_PASSWORD_TESTING}

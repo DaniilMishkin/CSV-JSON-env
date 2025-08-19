@@ -1,0 +1,117 @@
+services:
+  nginx:
+    build: ./config/nginx
+    container_name: bt_crm-nginx
+    restart: always
+    ports:
+      - "${PORT_PHP_SSL}:443"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/conf.d/upstream-php.conf:/etc/nginx/conf.d/upstream-php.conf
+      - ./config/nginx/conf.d/upstream-reverb.conf:/etc/nginx/conf.d/upstream-reverb.conf
+      - ./config/nginx/sites/${NGINX_SITE_CONF:?"undefined NGINX_SITE_CONF environment variable"}:/etc/nginx/conf.d/default.conf
+      - ./src:/var/www
+      - ./logs/nginx:/var/log/nginx
+      - ${PATH_SSL:?"undefined PATH_SSL environment variable"}:/etc/ssl/private/
+    depends_on:
+      - php-fpm
+      - php-reverb
+      - php-horizon
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.2
+
+  php-fpm:
+    build: ./config/php-fpm
+    container_name: bt_crm-php
+    restart: always
+    depends_on:
+      - db-mysql
+      - redis
+    links:
+      - php-reverb
+    volumes:
+      - ./src:/var/www
+      - ./logs/laravel:/var/www/storage/logsc
+    environment:
+      - APP_ENV=production
+      - DB_HOST=db-mysql
+      - DB_DATABASE=${DB_DATABASE:?"undefined DB_DATABASE environment variable"}
+      - DB_USERNAME=${DB_USERNAME:?"undefined DB_USERNAME environment variable"}
+      - DB_PASSWORD=${DB_PASSWORD:?"undefined DB_PASSWORD environment variable"}
+      - REDIS_URL=redis
+      - REDIS_HOST=redis
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.3
+
+  php-horizon:
+    build: ./config/php-cli
+    image: bt-crm:php-cli
+    container_name: bt_crm-php_horizon
+    restart: always
+    volumes:
+      - ./src:/var/www
+      - ./logs/horizon:/var/www/storage/logs
+    environment:
+      - APP_ENV=production
+      - DB_HOST=db-mysql
+      - DB_DATABASE=${DB_DATABASE:?"undefined DB_DATABASE environment variable"}
+      - DB_USERNAME=${DB_USERNAME:?"undefined DB_USERNAME environment variable"}
+      - DB_PASSWORD=${DB_PASSWORD:?"undefined DB_PASSWORD environment variable"}
+      - REDIS_URL=redis
+      - REDIS_HOST=redis
+    command: "php artisan horizon"
+    depends_on:
+      - db-mysql
+      - redis
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.4
+
+  node:
+    build:
+      context: ./src
+      dockerfile: ../config/node/Dockerfile
+    container_name: bt_crm-node
+    working_dir: /var/www
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./src/public:/var/www/public
+    command: "yarn build"
+    user: "node"
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.7
+
+  redis:
+    image: "redis:alpine"
+    container_name: bt_crm-redis
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.8
+
+  db-mysql:
+    build: ./config/mysql
+    container_name: bt_crm-mysql
+    volumes:
+      - ./db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-5ngSANq65BR5UYew}
+      - MYSQL_DATABASE=${DB_DATABASE:?"undefined DB_DATABASE environment variable"}
+      - MYSQL_USER=${DB_USERNAME:?"undefined DB_USERNAME environment variable"}
+      - MYSQL_PASSWORD=${DB_PASSWORD:?"undefined DB_PASSWORD environment variable"}
+    networks:
+      bt_crm:
+        ipv4_address: 192.168.2.9
+
+networks:
+  bt_crm:
+    name: bt_crm
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.2.0/24"
+          gateway: "192.168.2.1"

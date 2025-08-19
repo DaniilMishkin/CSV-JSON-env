@@ -1,0 +1,9 @@
+FROM mysql:8
+
+ARG MYSQL_DATABASE_TESTING
+ARG MYSQL_USERNAME_TESTING
+ARG MYSQL_PASSWORD_TESTING
+
+RUN echo "CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE_TESTING};" > /docker-entrypoint-initdb.d/02-testing.sql
+RUN echo "CREATE USER IF NOT EXISTS ${MYSQL_USERNAME_TESTING}@'%' identified by '${MYSQL_PASSWORD_TESTING}';" >> /docker-entrypoint-initdb.d/02-testing.sql
+RUN echo "GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE_TESTING}.* TO ${MYSQL_USERNAME_TESTING}@'%'" >> /docker-entrypoint-initdb.d/02-testing.sql;
