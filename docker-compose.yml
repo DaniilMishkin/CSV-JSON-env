@@ -43,7 +43,7 @@ services:
 
   php-horizon:
     build: ./config/php-cli
-    image: bt-crm:php-cli
+    image: csv-json:php-cli
     container_name: csv_json-php_horizon
     restart: always
     volumes:
