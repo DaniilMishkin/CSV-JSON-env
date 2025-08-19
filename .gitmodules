@@ -1,3 +1,4 @@
 [submodule "src"]
 	path = src
-	url = git@github.com:DaniilMishkin/CSV-JSON.git
+	url = https://github.com/DaniilMishkin/CSV-JSON.git
+	branch = main
