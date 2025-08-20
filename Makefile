@@ -46,7 +46,7 @@ connect-db:
 connect-node:
 	@docker exec -it -u="$(shell id -u):$(shell id -g)" csv_json-node /bin/bash
 
-deploy: run-maintenance-on update-src run-php-update run-php-refresh-permissions run-maintenance-off build-node
+deploy: run-maintenance-on update-src run-php-update run-maintenance-off build-node
 
 update-src:
 	git submodule update --remote src
