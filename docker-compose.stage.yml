@@ -1,0 +1,8 @@
+services:
+  nginx:
+    ports:
+      - "80:80"
+
+  php-fpm:
+    environment:
+      - APP_ENV=local
